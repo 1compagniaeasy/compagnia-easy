@@ -1,4 +1,3 @@
-
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js';
 
 import {
@@ -15,6 +14,7 @@ import {
   getDoc,
   setDoc,
   updateDoc,
+  deleteDoc,
   collection,
   getDocs,
   addDoc,
@@ -218,9 +218,7 @@ onAuthStateChanged(auth, async user => {
     await signOut(auth);
     showLogin('Errore nella verifica dei permessi. Riprova più tardi.');
   }
-});
-
-/* INVITO DI UN NUOVO COMPONENTE */
+});/* INVITO DI UN NUOVO COMPONENTE */
 
 inviteForm.addEventListener('submit', async event => {
   event.preventDefault();
@@ -431,6 +429,63 @@ async function loadAnnouncements() {
       meta.textContent = `Pubblicato da ${item.author || 'Amministrazione'} · ${formatTimestamp(item.createdAt)}`;
 
       card.append(label, title, body, meta);
+
+      if (currentRole === 'admin') {
+        const controls = document.createElement('div');
+        controls.className = 'member-controls';
+
+        const editButton = document.createElement('button');
+        editButton.type = 'button';
+        editButton.className = 'button button-quiet';
+        editButton.textContent = 'Modifica';
+
+        editButton.addEventListener('click', async () => {
+          const newTitle = prompt('Modifica il titolo:', item.title || '');
+          if (newTitle === null) return;
+
+          const newText = prompt('Modifica il testo:', item.text || '');
+          if (newText === null) return;
+
+          if (!newTitle.trim() || !newText.trim()) {
+            alert('Titolo e testo non possono essere vuoti.');
+            return;
+          }
+
+          try {
+            await updateDoc(doc(db, 'announcements', item.id), {
+              title: newTitle.trim(),
+              text: newText.trim(),
+              updatedAt: serverTimestamp()
+            });
+
+            await loadAnnouncements();
+          } catch (error) {
+            console.error(error);
+            alert('Non è stato possibile modificare l’annuncio.');
+          }
+        });
+
+        const deleteButton = document.createElement('button');
+        deleteButton.type = 'button';
+        deleteButton.className = 'button button-quiet';
+        deleteButton.textContent = 'Elimina';
+
+        deleteButton.addEventListener('click', async () => {
+          if (!confirm(`Vuoi eliminare l’annuncio "${item.title}"?`)) return;
+
+          try {
+            await deleteDoc(doc(db, 'announcements', item.id));
+            await loadAnnouncements();
+          } catch (error) {
+            console.error(error);
+            alert('Non è stato possibile eliminare l’annuncio.');
+          }
+        });
+
+        controls.append(editButton, deleteButton);
+        card.append(controls);
+      }
+
       announcementsList.append(card);
     });
 
@@ -438,9 +493,7 @@ async function loadAnnouncements() {
     console.error(error);
     announcementsList.textContent = 'Errore nel caricamento degli annunci.';
   }
-}
-
-/* CREAZIONE ALLENAMENTI */
+}/* CREAZIONE ALLENAMENTI */
 
 trainingForm.addEventListener('submit', async event => {
   event.preventDefault();
@@ -565,6 +618,57 @@ function renderEventCards(container, events) {
     card.append(dateBox, info);
 
     if (currentRole === 'admin') {
+      const controls = document.createElement('div');
+      controls.className = 'member-controls';
+
+      const editButton = document.createElement('button');
+      editButton.type = 'button';
+      editButton.className = 'button button-quiet';
+      editButton.textContent = 'Modifica';
+
+      editButton.addEventListener('click', async () => {
+        const newTitle = prompt('Titolo dell’allenamento:', item.title || '');
+        if (newTitle === null) return;
+
+        const newDate = prompt('Data (AAAA-MM-GG):', item.date || '');
+        if (newDate === null) return;
+
+        const newTime = prompt('Ora (HH:MM):', item.time || '');
+        if (newTime === null) return;
+
+        const newLocation = prompt('Luogo:', item.location || '');
+        if (newLocation === null) return;
+
+        const newDescription = prompt('Descrizione:', item.description || '');
+        if (newDescription === null) return;
+
+        if (
+          !newTitle.trim() ||
+          !/^\d{4}-\d{2}-\d{2}$/.test(newDate.trim()) ||
+          !newTime.trim() ||
+          !newLocation.trim()
+        ) {
+          alert('Inserisci titolo, data valida, ora e luogo.');
+          return;
+        }
+
+        try {
+          await updateDoc(doc(db, 'events', item.id), {
+            title: newTitle.trim(),
+            date: newDate.trim(),
+            time: newTime.trim(),
+            location: newLocation.trim(),
+            description: newDescription.trim(),
+            updatedAt: serverTimestamp()
+          });
+
+          await loadEvents();
+        } catch (error) {
+          console.error(error);
+          alert('Non è stato possibile modificare l’allenamento.');
+        }
+      });
+
       const cancelButton = document.createElement('button');
       cancelButton.type = 'button';
       cancelButton.className = 'button button-quiet';
@@ -585,14 +689,13 @@ function renderEventCards(container, events) {
         }
       });
 
-      card.append(cancelButton);
+      controls.append(editButton, cancelButton);
+      card.append(controls);
     }
 
     container.append(card);
   });
-}
-
-/* PRESENZE */
+}/* PRESENZE */
 
 function populateAttendanceSelect() {
   const previousSelection = attendanceSelect.value;
@@ -689,7 +792,6 @@ async function loadAttendance(eventId) {
     appendAttendanceGroup(attendanceList, 'PRESENTI', present, 'present');
     appendAttendanceGroup(attendanceList, 'ASSENTI', absent, 'absent');
 
-    // Solo gli amministratori possono leggere l'elenco completo dei membri.
     if (currentRole === 'admin') {
       const membersSnapshot = await getDocs(collection(db, 'members'));
 
