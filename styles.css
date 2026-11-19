@@ -1,7 +1,442 @@
 
-/* =====================================
-   BACHECA E ANNUNCI
-===================================== */
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+  color-scheme: dark;
+  --bg: #10140f;
+  --panel: #191f17;
+  --panel2: #20281d;
+  --line: #303a2c;
+  --text: #edf0e8;
+  --muted: #a2aa9a;
+  --olive: #9bab78;
+  --olive2: #c1cf9e;
+  --tan: #b39a76;
+  --danger: #d49a83;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 90px;
+}
+
+body {
+  margin: 0;
+  background:
+    radial-gradient(ellipse at 78% 8%, #293322 0, transparent 34%),
+    linear-gradient(145deg, #10140f, #151b14 60%, #10140f);
+  color: var(--text);
+  font-family: Inter, system-ui, sans-serif;
+  min-height: 100vh;
+}
+
+.noise {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: .035;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.35'/%3E%3C/svg%3E");
+}
+
+.topbar {
+  height: 76px;
+  border-bottom: 1px solid #ffffff12;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 clamp(18px, 5vw, 70px);
+  position: sticky;
+  top: 0;
+  background: #11160feF;
+  backdrop-filter: blur(14px);
+  z-index: 5;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.brand-mark {
+  width: 42px;
+  height: 42px;
+  border: 1px solid #778663;
+  border-radius: 8px;
+}
+
+.brand strong,
+.brand small {
+  display: block;
+}
+
+.brand strong {
+  font-size: 12px;
+  letter-spacing: .13em;
+}
+
+.brand small {
+  font-size: 9px;
+  letter-spacing: .17em;
+  color: var(--muted);
+  margin-top: 4px;
+}
+
+.top-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.status {
+  font-size: 9px;
+  letter-spacing: .12em;
+  color: var(--muted);
+}
+
+.status i {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #9b7955;
+  margin-right: 6px;
+}
+
+.status.online i {
+  background: #9dbb78;
+  box-shadow: 0 0 10px #9dbb78;
+}
+
+.login-layout {
+  max-width: 1160px;
+  min-height: calc(100vh - 76px);
+  margin: auto;
+  padding: clamp(55px, 10vw, 125px) 24px;
+  display: grid;
+  grid-template-columns: 1.2fr .8fr;
+  gap: 8vw;
+  align-items: center;
+}
+
+.eyebrow,
+.card-kicker {
+  font-size: 10px;
+  letter-spacing: .2em;
+  font-weight: 700;
+  color: var(--olive);
+  margin: 0 0 16px;
+}
+
+.hero-copy h1,
+.welcome-row h1 {
+  font-family: 'Barlow Condensed', Impact, sans-serif;
+  text-transform: uppercase;
+  font-size: clamp(65px, 10vw, 124px);
+  line-height: .82;
+  letter-spacing: .015em;
+  margin: 0;
+}
+
+.hero-copy h1 em {
+  font-style: normal;
+  color: var(--olive2);
+}
+
+.intro {
+  max-width: 470px;
+  color: #b9c0b1;
+  line-height: 1.8;
+  font-size: 14px;
+  margin: 28px 0;
+}
+
+.hero-meta {
+  display: flex;
+  gap: 12px;
+  color: var(--tan);
+  font-size: 9px;
+  letter-spacing: .2em;
+  font-weight: 700;
+}
+
+.panel {
+  background: linear-gradient(145deg, #20271d, #171d16);
+  border: 1px solid var(--line);
+  box-shadow: 0 20px 70px #0005;
+  border-radius: 12px;
+}
+
+.login-card {
+  padding: clamp(24px, 4vw, 38px);
+}
+
+.login-card h2,
+.content-panel h2 {
+  font-family: 'Barlow Condensed', sans-serif;
+  text-transform: uppercase;
+  font-size: 30px;
+  letter-spacing: .04em;
+  margin: 0 0 8px;
+}
+
+.login-card > p {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+.button {
+  border: 1px solid transparent;
+  border-radius: 7px;
+  padding: 13px 16px;
+  font: 600 12px Inter, sans-serif;
+  cursor: pointer;
+}
+
+.button-primary {
+  background: var(--olive2);
+  color: #182014;
+}
+
+.button-primary:hover {
+  background: #d1ddb5;
+}
+
+.button-wide {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  margin: 24px 0 12px;
+}
+
+.google-g {
+  font-weight: 800;
+  font-size: 17px;
+  color: #4285f4;
+  background: white;
+  width: 23px;
+  height: 23px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+}
+
+.button-quiet {
+  background: transparent;
+  border-color: var(--line);
+  color: var(--text);
+  padding: 8px 12px;
+}
+
+.message {
+  min-height: 35px;
+}
+
+.lock-note {
+  border-top: 1px solid var(--line);
+  padding-top: 17px;
+  margin-top: 20px;
+  font-size: 9px;
+  letter-spacing: .13em;
+  color: var(--tan);
+}
+
+.hidden {
+  display: none !important;
+}
+
+main {
+  position: relative;
+}
+
+.welcome-row {
+  max-width: 1160px;
+  margin: 0 auto;
+  padding: 54px 24px 28px;
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.welcome-row h1 {
+  font-size: 64px;
+}
+
+.accent {
+  color: var(--olive2);
+}
+
+.muted {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+.user-chip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #ffffff08;
+  border: 1px solid var(--line);
+  padding: 9px 13px;
+  border-radius: 8px;
+}
+
+.user-chip strong,
+.user-chip small {
+  display: block;
+}
+
+.user-chip strong {
+  font-size: 11px;
+}
+
+.user-chip small {
+  font-size: 9px;
+  color: var(--olive);
+  letter-spacing: .12em;
+  margin-top: 4px;
+}
+
+.avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: #536447;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.admin-banner {
+  max-width: 1112px;
+  margin: 0 auto 18px;
+  padding: 12px 16px;
+  border: 1px solid #8a9864;
+  background: #68784a22;
+  color: var(--olive2);
+  font-size: 10px;
+  letter-spacing: .12em;
+  border-radius: 6px;
+}
+
+.quick-grid {
+  max-width: 1112px;
+  margin: 0 auto;
+  padding: 0 0 34px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.module-card {
+  min-height: 130px;
+  padding: 20px;
+  background: linear-gradient(145deg, #20281d, #171d16);
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  text-decoration: none;
+  color: var(--text);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  transition: .2s;
+}
+
+.module-card:hover {
+  transform: translateY(-3px);
+  border-color: #71835c;
+  background: #283222;
+}
+
+.module-icon {
+  font-size: 23px;
+  color: var(--olive2);
+  margin-bottom: 14px;
+}
+
+.module-card strong {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 18px;
+  letter-spacing: .09em;
+}
+
+.module-card small {
+  font-size: 10px;
+  color: var(--muted);
+  margin-top: 5px;
+}
+
+.content-panel {
+  max-width: 1112px;
+  margin: 0 auto 14px;
+  padding: 23px 25px;
+  scroll-margin-top: 90px;
+}
+
+.section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.section-heading .eyebrow {
+  margin-bottom: 5px;
+}
+
+.section-heading h2 {
+  margin-bottom: 0;
+}
+
+.tag {
+  font-size: 9px;
+  letter-spacing: .14em;
+  color: var(--tan);
+  border: 1px solid #76664f;
+  padding: 6px 9px;
+  border-radius: 3px;
+}
+
+.empty-state {
+  border: 1px dashed #46503e;
+  padding: 18px;
+  text-align: center;
+  color: #899282;
+  font-size: 11px;
+  border-radius: 6px;
+  margin-top: 15px;
+}
+
+.app-footer {
+  text-align: center;
+  padding: 35px 12px 45px;
+  color: #798271;
+  font-size: 9px;
+  letter-spacing: .17em;
+}
+
+.app-footer span {
+  color: var(--tan);
+  padding: 0 7px;
+}
+
+.message.error {
+  color: var(--danger);
+}
+
+/* BACHECA E ANNUNCI */
 
 .admin-form {
   margin: 24px 0;
@@ -311,7 +746,97 @@ button:disabled {
 
 /* ADATTAMENTO SMARTPHONE */
 
-@media(max-width: 600px) {
+@media (max-width: 760px) {
+  .topbar {
+    height: 66px;
+    padding: 0 16px;
+  }
+
+  .brand-mark {
+    width: 36px;
+    height: 36px;
+  }
+
+  .brand strong {
+    font-size: 10px;
+  }
+
+  .brand small {
+    font-size: 8px;
+  }
+
+  .status {
+    font-size: 8px;
+  }
+
+  .login-layout {
+    min-height: auto;
+    padding: 65px 20px 55px;
+    grid-template-columns: 1fr;
+    gap: 38px;
+  }
+
+  .hero-copy h1 {
+    font-size: 76px;
+  }
+
+  .intro {
+    font-size: 13px;
+    margin: 20px 0;
+  }
+
+  .login-card {
+    max-width: 500px;
+    width: 100%;
+    margin: auto;
+  }
+
+  .welcome-row {
+    padding: 38px 18px 22px;
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .welcome-row h1 {
+    font-size: 56px;
+  }
+
+  .user-chip {
+    align-self: stretch;
+  }
+
+  .quick-grid {
+    padding: 0 16px 25px;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 9px;
+  }
+
+  .module-card {
+    min-height: 118px;
+    padding: 15px;
+  }
+
+  .content-panel {
+    margin: 0 16px 12px;
+    padding: 19px;
+  }
+
+  .admin-banner {
+    margin: 0 16px 16px;
+  }
+
+  .app-footer {
+    padding-bottom: 30px;
+  }
+}
+
+@media (min-width: 761px) {
+  #app-view {
+    padding-bottom: 20px;
+  }
+}
+
+@media (max-width: 600px) {
   .form-grid {
     grid-template-columns: 1fr;
     gap: 0;
