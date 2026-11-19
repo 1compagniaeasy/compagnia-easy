@@ -15,6 +15,7 @@ import {
   setDoc,
   updateDoc,
   deleteDoc,
+  writeBatch,
   collection,
   getDocs,
   addDoc,
@@ -218,7 +219,9 @@ onAuthStateChanged(auth, async user => {
     await signOut(auth);
     showLogin('Errore nella verifica dei permessi. Riprova più tardi.');
   }
-});/* INVITO DI UN NUOVO COMPONENTE */
+});
+
+/* INVITO DI UN NUOVO COMPONENTE */
 
 inviteForm.addEventListener('submit', async event => {
   event.preventDefault();
@@ -493,7 +496,9 @@ async function loadAnnouncements() {
     console.error(error);
     announcementsList.textContent = 'Errore nel caricamento degli annunci.';
   }
-}/* CREAZIONE ALLENAMENTI */
+}
+
+/* CREAZIONE ALLENAMENTI */
 
 trainingForm.addEventListener('submit', async event => {
   event.preventDefault();
@@ -689,13 +694,56 @@ function renderEventCards(container, events) {
         }
       });
 
-      controls.append(editButton, cancelButton);
+      const deleteButton = document.createElement('button');
+      deleteButton.type = 'button';
+      deleteButton.className = 'button button-quiet';
+      deleteButton.textContent = 'Elimina';
+
+      deleteButton.addEventListener('click', async () => {
+        if (!confirm(`Vuoi eliminare definitivamente "${item.title}"? Verranno eliminate anche tutte le presenze associate. Questa operazione non può essere annullata.`)) {
+          return;
+        }
+
+        deleteButton.disabled = true;
+
+        try {
+          const attendanceSnapshot = await getDocs(collection(db, 'attendance'));
+
+          const relatedAttendance = attendanceSnapshot.docs.filter(attendanceDoc => {
+            return attendanceDoc.data().eventId === item.id;
+          });
+
+          const batch = writeBatch(db);
+
+          relatedAttendance.forEach(attendanceDoc => {
+            batch.delete(attendanceDoc.ref);
+          });
+
+          batch.delete(doc(db, 'events', item.id));
+
+          await batch.commit();
+          await loadEvents();
+
+          if (selectedEventId === item.id) {
+            selectedEventId = null;
+          }
+        } catch (error) {
+          console.error(error);
+          alert('Non è stato possibile eliminare l’allenamento e le presenze associate. Verifica i permessi Firebase.');
+        } finally {
+          deleteButton.disabled = false;
+        }
+      });
+
+      controls.append(editButton, cancelButton, deleteButton);
       card.append(controls);
     }
 
     container.append(card);
   });
-}/* PRESENZE */
+}
+
+/* PRESENZE */
 
 function populateAttendanceSelect() {
   const previousSelection = attendanceSelect.value;
