@@ -1,0 +1,233 @@
+
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#151b14" />
+  <meta name="description" content="Area riservata della 1ª Compagnia Easy." />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" href="assets/icon-192.png" />
+  <link rel="apple-touch-icon" href="assets/icon-192.png" />
+  <link rel="stylesheet" href="styles.css" />
+  <title>1ª Compagnia Easy — Members Area</title>
+</head>
+<body>
+  <div class="noise"></div>
+
+  <header class="topbar">
+    <a class="brand" href="#home" aria-label="1ª Compagnia Easy home">
+      <img src="assets/icon-192.png" alt="" class="brand-mark" />
+      <span>
+        <strong>1ª COMPAGNIA EASY</strong>
+        <small>MEMBERS AREA · EST. 2006</small>
+      </span>
+    </a>
+
+    <div class="top-actions">
+      <span id="connection-status" class="status"><i></i> OFFLINE</span>
+      <button id="signout-btn" class="button button-quiet hidden">Esci</button>
+    </div>
+  </header>
+
+  <main>
+    <section id="login-view" class="login-layout">
+      <div class="hero-copy">
+        <p class="eyebrow">ACCESSO RISERVATO · VERSILIA</p>
+        <h1>MISSION<br /><em>CONTROL</em></h1>
+        <p class="intro">
+          Il centro operativo digitale della 1ª Compagnia Easy.
+          Comunicazioni, appuntamenti e materiali della squadra in un unico spazio.
+        </p>
+        <div class="hero-meta">
+          <span>DAL 2006</span><span>·</span><span>MEMBERS ONLY</span>
+        </div>
+      </div>
+
+      <div class="login-card panel">
+        <div class="card-kicker">IDENTIFICAZIONE MEMBRO</div>
+        <h2>Accesso al portale</h2>
+        <p>Entra utilizzando l'account Google autorizzato dagli amministratori.</p>
+        <button id="google-login" class="button button-primary button-wide">
+          <span class="google-g">G</span> Accedi con Google
+        </button>
+        <p id="login-message" class="message" role="status">
+          Solo gli account inseriti nell'elenco dei membri possono accedere.
+        </p>
+        <div class="lock-note">
+          <span>▣</span> AREA PRIVATA · ACCESSO AUTORIZZATO
+        </div>
+      </div>
+    </section>
+
+    <section id="app-view" class="hidden">
+      <div class="welcome-row">
+        <div>
+          <p class="eyebrow">QUARTIER GENERALE DIGITALE</p>
+          <h1>Dashboard<span class="accent">.</span></h1>
+          <p id="welcome-text" class="muted">Bentornato nella Members Area.</p>
+        </div>
+
+        <div class="user-chip">
+          <div id="user-avatar" class="avatar">CE</div>
+          <div>
+            <strong id="user-name">Membro</strong>
+            <small id="user-role">MEMBRO</small>
+          </div>
+        </div>
+      </div>
+
+      <div id="admin-banner" class="admin-banner hidden">
+        MODALITÀ AMMINISTRATORE — gestione riservata
+      </div>
+
+      <div class="quick-grid">
+        <a class="module-card" href="#bacheca">
+          <span class="module-icon">▤</span>
+          <strong>BACHECA</strong>
+          <small>Avvisi e comunicazioni</small>
+        </a>
+
+        <a class="module-card" href="#calendario">
+          <span class="module-icon">▦</span>
+          <strong>CALENDARIO</strong>
+          <small>Eventi e allenamenti</small>
+        </a>
+
+        <a class="module-card" href="#presenze">
+          <span class="module-icon">✓</span>
+          <strong>PRESENZE</strong>
+          <small>Conferma partecipazione</small>
+        </a>
+
+        <a class="module-card" href="#documenti">
+          <span class="module-icon">▣</span>
+          <strong>DOCUMENTI</strong>
+          <small>Regolamenti e materiali</small>
+        </a>
+
+        <a class="module-card" href="#galleria">
+          <span class="module-icon">▧</span>
+          <strong>GALLERIA</strong>
+          <small>Foto della Compagnia</small>
+        </a>
+
+        <a class="module-card" href="#membri">
+          <span class="module-icon">♙</span>
+          <strong>MEMBRI</strong>
+          <small>Area della squadra</small>
+        </a>
+      </div>
+
+      <section class="content-panel panel" id="bacheca">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">COMUNICAZIONI</p>
+            <h2>Bacheca</h2>
+          </div>
+          <span class="tag">IN ARRIVO</span>
+        </div>
+        <p class="muted">Qui compariranno gli avvisi ufficiali della Compagnia.</p>
+        <div class="empty-state">Nessuna comunicazione pubblicata.</div>
+      </section>
+
+      <section class="content-panel panel" id="calendario">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">PIANIFICAZIONE</p>
+            <h2>Calendario</h2>
+          </div>
+        </div>
+        <p class="muted">Allenamenti, eventi e appuntamenti della squadra.</p>
+        <div class="empty-state">Il calendario sarà collegato nella prossima fase.</div>
+      </section>
+
+      <section class="content-panel panel" id="presenze">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">PARTECIPAZIONE</p>
+            <h2>Presenze</h2>
+          </div>
+        </div>
+        <p class="muted">Conferma la tua partecipazione agli appuntamenti.</p>
+        <div class="empty-state">Il modulo presenze sarà attivato nella prossima fase.</div>
+      </section>
+
+      <section class="content-panel panel" id="documenti">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">ARCHIVIO</p>
+            <h2>Documenti</h2>
+          </div>
+        </div>
+        <div class="empty-state">Nessun documento condiviso.</div>
+      </section>
+
+      <section class="content-panel panel" id="galleria">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">FOTOGRAFIE</p>
+            <h2>Galleria</h2>
+          </div>
+        </div>
+        <div class="empty-state">La galleria sarà disponibile prossimamente.</div>
+      </section>
+
+      <!-- GESTIONE MEMBRI -->
+      <section class="content-panel panel" id="membri">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">PERSONALE</p>
+            <h2>Gestione membri</h2>
+          </div>
+          <span class="tag">AREA RISERVATA</span>
+        </div>
+
+        <div id="members-admin" class="hidden">
+          <h3>Invita un componente</h3>
+          <p class="muted">
+            Inserisci l'indirizzo Google che userà per accedere al portale.
+          </p>
+
+          <form id="invite-form">
+            <label for="invite-email">Email Google</label>
+            <input
+              id="invite-email"
+              type="email"
+              placeholder="nome@gmail.com"
+              required
+            />
+
+            <label for="invite-role">Ruolo</label>
+            <select id="invite-role">
+              <option value="member">Membro</option>
+              <option value="admin">Amministratore</option>
+            </select>
+
+            <button class="button button-primary" type="submit">
+              Invia invito
+            </button>
+
+            <p id="invite-message" class="message" role="status"></p>
+          </form>
+
+          <h3>Componenti autorizzati</h3>
+          <div id="members-list" class="empty-state">
+            Caricamento elenco membri...
+          </div>
+        </div>
+
+        <div id="members-readonly" class="muted">
+          La gestione dei componenti è riservata agli amministratori.
+        </div>
+      </section>
+
+      <footer class="app-footer">
+        1ª COMPAGNIA EASY <span>·</span> DAL 2006 <span>·</span> AREA RISERVATA
+      </footer>
+    </section>
+  </main>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
