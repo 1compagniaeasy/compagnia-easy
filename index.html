@@ -85,19 +85,19 @@
         <a class="module-card" href="#bacheca">
           <span class="module-icon">▤</span>
           <strong>BACHECA</strong>
-          <small>Avvisi e comunicazioni</small>
+          <small>Annunci e allenamenti</small>
         </a>
 
         <a class="module-card" href="#calendario">
           <span class="module-icon">▦</span>
           <strong>CALENDARIO</strong>
-          <small>Eventi e allenamenti</small>
+          <small>Programmazione attività</small>
         </a>
 
         <a class="module-card" href="#presenze">
           <span class="module-icon">✓</span>
           <strong>PRESENZE</strong>
-          <small>Conferma partecipazione</small>
+          <small>Partecipazione squadra</small>
         </a>
 
         <a class="module-card" href="#documenti">
@@ -119,40 +119,205 @@
         </a>
       </div>
 
+      <!-- BACHECA -->
       <section class="content-panel panel" id="bacheca">
         <div class="section-heading">
           <div>
-            <p class="eyebrow">COMUNICAZIONI</p>
+            <p class="eyebrow">COMUNICAZIONI UFFICIALI</p>
             <h2>Bacheca</h2>
           </div>
-          <span class="tag">IN ARRIVO</span>
+          <span class="tag">AVVISI IMPORTANTI</span>
         </div>
-        <p class="muted">Qui compariranno gli avvisi ufficiali della Compagnia.</p>
-        <div class="empty-state">Nessuna comunicazione pubblicata.</div>
+
+        <div id="announcements-admin" class="admin-form hidden">
+          <h3>Pubblica un annuncio</h3>
+
+          <form id="announcement-form">
+            <label for="announcement-title">Titolo</label>
+            <input
+              id="announcement-title"
+              type="text"
+              maxlength="100"
+              placeholder="Titolo della comunicazione"
+              required
+            />
+
+            <label for="announcement-text">Comunicazione</label>
+            <textarea
+              id="announcement-text"
+              rows="4"
+              maxlength="2000"
+              placeholder="Scrivi l'annuncio..."
+              required
+            ></textarea>
+
+            <button class="button button-primary" type="submit">
+              Pubblica annuncio
+            </button>
+
+            <p id="announcement-message" class="message" role="status"></p>
+          </form>
+        </div>
+
+        <h3>Annunci importanti</h3>
+        <div id="announcements-list" class="empty-state">
+          Caricamento comunicazioni...
+        </div>
+
+        <div class="section-divider"></div>
+
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">ATTIVITÀ DELLA SQUADRA</p>
+            <h2>Prossimi allenamenti</h2>
+          </div>
+        </div>
+
+        <div id="board-events-list" class="event-list">
+          <div class="empty-state">Caricamento allenamenti...</div>
+        </div>
       </section>
 
+      <!-- CALENDARIO -->
       <section class="content-panel panel" id="calendario">
         <div class="section-heading">
           <div>
             <p class="eyebrow">PIANIFICAZIONE</p>
             <h2>Calendario</h2>
           </div>
+          <span class="tag">ALLENAMENTI</span>
         </div>
-        <p class="muted">Allenamenti, eventi e appuntamenti della squadra.</p>
-        <div class="empty-state">Il calendario sarà collegato nella prossima fase.</div>
+
+        <div id="events-admin" class="admin-form hidden">
+          <h3>Programma un allenamento</h3>
+
+          <form id="training-form">
+            <label for="training-title">Titolo</label>
+            <input
+              id="training-title"
+              type="text"
+              maxlength="100"
+              placeholder="Es. Allenamento domenicale"
+              required
+            />
+
+            <div class="form-grid">
+              <div>
+                <label for="training-date">Data</label>
+                <input id="training-date" type="date" required />
+              </div>
+
+              <div>
+                <label for="training-time">Orario</label>
+                <input id="training-time" type="time" required />
+              </div>
+            </div>
+
+            <label for="training-location">Luogo di ritrovo</label>
+            <input
+              id="training-location"
+              type="text"
+              maxlength="150"
+              placeholder="Luogo dell'allenamento"
+              required
+            />
+
+            <label for="training-description">Descrizione</label>
+            <textarea
+              id="training-description"
+              rows="4"
+              maxlength="2000"
+              placeholder="Dettagli dell'attività..."
+            ></textarea>
+
+            <button class="button button-primary" type="submit">
+              Pubblica allenamento
+            </button>
+
+            <p id="training-message" class="message" role="status"></p>
+          </form>
+        </div>
+
+        <h3>Programmazione attività</h3>
+        <div id="calendar-events-list" class="event-list">
+          <div class="empty-state">Caricamento calendario...</div>
+        </div>
       </section>
 
+      <!-- PRESENZE -->
       <section class="content-panel panel" id="presenze">
         <div class="section-heading">
           <div>
             <p class="eyebrow">PARTECIPAZIONE</p>
             <h2>Presenze</h2>
           </div>
+          <span class="tag">VISIBILI AI MEMBRI</span>
         </div>
-        <p class="muted">Conferma la tua partecipazione agli appuntamenti.</p>
-        <div class="empty-state">Il modulo presenze sarà attivato nella prossima fase.</div>
+
+        <p class="muted">
+          Seleziona un allenamento e comunica la tua partecipazione.
+          Le risposte sono visibili a tutti i componenti della squadra.
+        </p>
+
+        <label for="attendance-event-select">Seleziona allenamento</label>
+        <select id="attendance-event-select">
+          <option value="">Seleziona un allenamento...</option>
+        </select>
+
+        <div id="attendance-event-details" class="attendance-details hidden"></div>
+
+        <div id="attendance-controls" class="attendance-controls hidden">
+          <h3>Conferma la tua presenza</h3>
+          <div class="attendance-buttons">
+            <button
+              id="attendance-present"
+              class="button attendance-present"
+              type="button"
+            >
+              ✓ PRESENTE
+            </button>
+
+            <button
+              id="attendance-absent"
+              class="button attendance-absent"
+              type="button"
+            >
+              ✕ ASSENTE
+            </button>
+          </div>
+
+          <p id="attendance-message" class="message" role="status"></p>
+        </div>
+
+        <div id="attendance-results" class="attendance-results hidden">
+          <h3>Riepilogo partecipazioni</h3>
+
+          <div class="attendance-summary">
+            <div class="attendance-count present-count">
+              <strong id="present-count">0</strong>
+              <span>PRESENTI</span>
+            </div>
+
+            <div class="attendance-count absent-count">
+              <strong id="absent-count">0</strong>
+              <span>ASSENTI</span>
+            </div>
+
+            <div class="attendance-count unanswered-count">
+              <strong id="unanswered-count">0</strong>
+              <span>NON HANNO RISPOSTO</span>
+            </div>
+          </div>
+
+          <div id="attendance-list" class="attendance-list"></div>
+        </div>
+
+        <div id="attendance-empty" class="empty-state">
+          Non ci sono allenamenti disponibili.
+        </div>
       </section>
 
+      <!-- DOCUMENTI -->
       <section class="content-panel panel" id="documenti">
         <div class="section-heading">
           <div>
@@ -163,6 +328,7 @@
         <div class="empty-state">Nessun documento condiviso.</div>
       </section>
 
+      <!-- GALLERIA -->
       <section class="content-panel panel" id="galleria">
         <div class="section-heading">
           <div>
