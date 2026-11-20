@@ -3799,3 +3799,44 @@ select {
   .sidebar-nav a { padding: 8px; gap: 7px; }
   .app-main .quick-grid { grid-template-columns: 1fr 1fr; }
 }
+
+
+/* MOBILE UX PATCH — schede allenamenti e comandi */
+@media (max-width: 680px) {
+  .app-main .content-panel { padding: clamp(15px, 4vw, 20px); overflow: hidden; }
+  .event-list { gap: 12px; }
+  .event-card {
+    display: grid; grid-template-columns: 54px minmax(0, 1fr);
+    align-items: start; gap: 12px; padding: 14px; border-radius: 13px;
+  }
+  .event-date { grid-column: 1; grid-row: 1; width: 54px; height: 62px; margin-top: 2px; }
+  .event-info { grid-column: 2; grid-row: 1; min-width: 0; overflow-wrap: anywhere; }
+  .event-info h3 {
+    margin: 0 0 8px; font-size: clamp(18px, 5vw, 22px);
+    line-height: 1.15; overflow-wrap: anywhere;
+  }
+  .event-info p {
+    margin: 5px 0; font-size: 13px; line-height: 1.5; overflow-wrap: anywhere;
+  }
+  .event-info p:first-of-type { color: #d0d8c5; }
+  .event-card > .member-controls {
+    grid-column: 1 / -1; display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 7px; width: 100%; margin-top: 3px;
+  }
+  .event-card > .member-controls button, .event-card > button {
+    min-width: 0; min-height: 42px; padding: 9px 6px;
+    font-size: 12px; white-space: normal;
+  }
+  .event-card .button { width: 100%; }
+  .section-heading { align-items: flex-start; gap: 10px; }
+  .section-heading .tag { max-width: 42%; white-space: normal; text-align: right; }
+  .admin-form, .admin-form form { min-width: 0; }
+  .content-panel input, .content-panel select, .content-panel textarea { max-width: 100%; font-size: 16px; }
+}
+@media (max-width: 380px) {
+  .event-card { grid-template-columns: 48px minmax(0, 1fr); gap: 9px; padding: 11px; }
+  .event-date { width: 48px; height: 58px; }
+  .event-card > .member-controls { grid-template-columns: 1fr; }
+  .event-card > .member-controls button { min-height: 40px; }
+}

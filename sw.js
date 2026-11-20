@@ -1,5 +1,5 @@
 
-const CACHE_NAME = 'compagnia-easy-shell-v2';
+const CACHE_NAME = 'compagnia-easy-shell-v3';
 
 const APP_SHELL = [
   './',
@@ -7,7 +7,8 @@ const APP_SHELL = [
   './styles.css',
   './manifest.json',
   './assets/icon-192.png',
-  './assets/icon-512.png'
+  './assets/icon-512.png',
+  './assets/apple-touch-icon.png'
 ];
 
 self.addEventListener('install', event => {
