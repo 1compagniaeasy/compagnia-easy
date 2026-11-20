@@ -1,4 +1,4 @@
-
+```html
 <!doctype html>
 <html lang="it">
 <head>
@@ -321,11 +321,87 @@
       <section class="content-panel panel" id="documenti">
         <div class="section-heading">
           <div>
-            <p class="eyebrow">ARCHIVIO</p>
+            <p class="eyebrow">ARCHIVIO RISERVATO</p>
             <h2>Documenti</h2>
           </div>
+          <span class="tag">PDF · MEMBERS ONLY</span>
         </div>
-        <div class="empty-state">Nessun documento condiviso.</div>
+
+        <p class="muted">
+          Regolamenti, manuali e materiali riservati della 1ª Compagnia Easy.
+          La consultazione è consentita ai membri attivi.
+        </p>
+
+        <!-- GESTIONE DOCUMENTI: SOLO AMMINISTRATORI -->
+        <div id="documents-admin" class="admin-form hidden">
+          <h3>Gestione categorie</h3>
+
+          <form id="document-category-form">
+            <label for="document-category-name">Nuova categoria</label>
+            <input
+              id="document-category-name"
+              type="text"
+              maxlength="80"
+              placeholder="Nome della categoria"
+              required
+            />
+
+            <button class="button button-primary" type="submit">
+              Aggiungi categoria
+            </button>
+
+            <p id="document-category-message" class="message" role="status"></p>
+          </form>
+
+          <div id="document-categories-admin-list" class="document-category-list">
+            Caricamento categorie...
+          </div>
+
+          <div class="section-divider"></div>
+
+          <h3>Carica un documento PDF</h3>
+
+          <form id="document-upload-form">
+            <label for="document-upload-title">Titolo del documento</label>
+            <input
+              id="document-upload-title"
+              type="text"
+              maxlength="120"
+              placeholder="Es. Regolamento interno 2026"
+              required
+            />
+
+            <label for="document-upload-category">Categoria</label>
+            <select id="document-upload-category" required>
+              <option value="">Seleziona una categoria...</option>
+            </select>
+
+            <label for="document-upload-file">File PDF</label>
+            <input
+              id="document-upload-file"
+              type="file"
+              accept="application/pdf,.pdf"
+              required
+            />
+
+            <button class="button button-primary" type="submit">
+              Carica documento
+            </button>
+
+            <p id="document-upload-message" class="message" role="status"></p>
+          </form>
+        </div>
+
+        <div class="section-divider"></div>
+
+        <div id="document-categories-list" class="hidden"></div>
+
+        <h3>Archivio documenti</h3>
+        <div id="documents-list" class="document-list">
+          Caricamento documenti...
+        </div>
+
+        <p id="documents-message" class="message" role="status"></p>
       </section>
 
       <!-- GALLERIA -->
@@ -336,7 +412,10 @@
             <h2>Galleria</h2>
           </div>
         </div>
-        <div class="empty-state">La galleria sarà disponibile prossimamente.</div>
+
+        <div class="empty-state">
+          La galleria sarà disponibile prossimamente.
+        </div>
       </section>
 
       <!-- GESTIONE MEMBRI -->
@@ -351,6 +430,7 @@
 
         <div id="members-admin" class="hidden">
           <h3>Invita un componente</h3>
+
           <p class="muted">
             Inserisci l'indirizzo Google che userà per accedere al portale.
           </p>
