@@ -136,6 +136,10 @@ function showApp(user, role) {
     .toUpperCase();
 
   $('#welcome-text').textContent = 'Bentornato, ' + name.split(' ')[0] + '.';
+  if (!validPages.has((window.location.hash || '#home').slice(1).toLowerCase())) {
+    history.replaceState(null, '', `${window.location.pathname}${window.location.search}#home`);
+  }
+  renderCurrentPage();
 
   $('#admin-banner').classList.toggle('hidden', role !== 'admin');
 
@@ -1478,6 +1482,43 @@ async function deleteDocument(item) {
     alert('Non è stato possibile eliminare il documento.');
   }
 }
+
+
+
+/* NAVIGAZIONE TRA LE PAGINE DELL'AREA MEMBRI */
+const validPages = new Set(['home', 'bacheca', 'calendario', 'presenze', 'documenti', 'galleria', 'membri']);
+
+function renderCurrentPage() {
+  if (!appView || appView.classList.contains('hidden')) return;
+
+  const requestedPage = (window.location.hash || '#home').slice(1).toLowerCase();
+  const activePage = validPages.has(requestedPage) ? requestedPage : 'home';
+
+  document.querySelectorAll('[data-page]').forEach(page => {
+    page.classList.toggle('hidden', page.dataset.page !== activePage);
+  });
+
+  document.querySelectorAll('[data-nav]').forEach(link => {
+    const isActive = link.dataset.nav === activePage;
+    link.classList.toggle('active', isActive);
+    if (isActive) link.setAttribute('aria-current', 'page');
+    else link.removeAttribute('aria-current');
+  });
+
+  const titles = {
+    home: 'Home',
+    bacheca: 'Bacheca',
+    calendario: 'Calendario',
+    presenze: 'Presenze',
+    documenti: 'Documenti',
+    galleria: 'Galleria',
+    membri: 'Membri'
+  };
+  document.title = `${titles[activePage]} — 1ª Compagnia Easy`;
+  window.scrollTo({ top: 0, behavior: 'auto' });
+}
+
+window.addEventListener('hashchange', renderCurrentPage);
 
 /* STATO DELLA CONNESSIONE */
 

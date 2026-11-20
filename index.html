@@ -1,4 +1,4 @@
-```html
+
 <!doctype html>
 <html lang="it">
 <head>
@@ -17,7 +17,7 @@
 
   <header class="topbar">
     <a class="brand" href="#home" aria-label="1ª Compagnia Easy home">
-      <img src="assets/icon-192.png" alt="" class="brand-mark" />
+      <img src="assets/logo-fenice.png" alt="Logo 1ª Compagnia Easy" class="brand-mark" />
       <span>
         <strong>1ª COMPAGNIA EASY</strong>
         <small>MEMBERS AREA · EST. 2006</small>
@@ -33,8 +33,14 @@
   <main>
     <section id="login-view" class="login-layout">
       <div class="hero-copy">
+        <div class="login-brand">
+          <img src="assets/logo-fenice.png" alt="Fenice 1ª Compagnia Easy" />
+          <span>1ª COMPAGNIA EASY</span>
+          <small>EST. 2006 · VERSILIA</small>
+        </div>
+
         <p class="eyebrow">ACCESSO RISERVATO · VERSILIA</p>
-        <h1>MISSION<br /><em>CONTROL</em></h1>
+        <h1>AREA<br /><em>MEMBRI</em></h1>
         <p class="intro">
           Il centro operativo digitale della 1ª Compagnia Easy.
           Comunicazioni, appuntamenti e materiali della squadra in un unico spazio.
@@ -45,15 +51,18 @@
       </div>
 
       <div class="login-card panel">
-        <div class="card-kicker">IDENTIFICAZIONE MEMBRO</div>
-        <h2>Accesso al portale</h2>
-        <p>Entra utilizzando l'account Google autorizzato dagli amministratori.</p>
+        <div class="card-kicker">ACCESSO RISERVATO · 1ª COMPAGNIA EASY</div>
+        <h2>AREA MEMBRI</h2>
+        <p>Portale operativo della 1ª Compagnia Easy. Accedi con il tuo account Google autorizzato.</p>
+
         <button id="google-login" class="button button-primary button-wide">
           <span class="google-g">G</span> Accedi con Google
         </button>
+
         <p id="login-message" class="message" role="status">
           Solo gli account inseriti nell'elenco dei membri possono accedere.
         </p>
+
         <div class="lock-note">
           <span>▣</span> AREA PRIVATA · ACCESSO AUTORIZZATO
         </div>
@@ -61,7 +70,28 @@
     </section>
 
     <section id="app-view" class="hidden">
-      <div class="welcome-row">
+      <div class="app-shell">
+        <aside class="app-sidebar" aria-label="Navigazione area membri">
+          <div class="sidebar-brand">
+            <img src="assets/logo-fenice.png" alt="" />
+            <span><strong>1ª COMPAGNIA EASY</strong><small>AREA MEMBRI</small></span>
+          </div>
+          <p class="sidebar-label">MENU PRINCIPALE</p>
+          <nav class="sidebar-nav">
+            <a href="#home" data-nav="home"><span>⌂</span> Home</a>
+            <a href="#bacheca" data-nav="bacheca"><span>▤</span> Bacheca</a>
+            <a href="#calendario" data-nav="calendario"><span>▦</span> Calendario</a>
+            <a href="#presenze" data-nav="presenze"><span>✓</span> Presenze</a>
+            <a href="#documenti" data-nav="documenti"><span>▣</span> Documenti</a>
+            <a href="#galleria" data-nav="galleria"><span>▧</span> Galleria</a>
+            <a href="#membri" data-nav="membri"><span>♙</span> Membri</a>
+          </nav>
+          <div class="sidebar-foot"><span class="sidebar-status-dot"></span> PORTALE OPERATIVO</div>
+        </aside>
+
+        <div class="app-main">
+          <section id="page-home" class="page-view" data-page="home">
+            <div class="welcome-row">
         <div>
           <p class="eyebrow">QUARTIER GENERALE DIGITALE</p>
           <h1>Dashboard<span class="accent">.</span></h1>
@@ -117,10 +147,11 @@
           <strong>MEMBRI</strong>
           <small>Area della squadra</small>
         </a>
-      </div>
+            </div>
+          </section>
 
       <!-- BACHECA -->
-      <section class="content-panel panel" id="bacheca">
+      <section class="content-panel panel page-view" id="bacheca" data-page="bacheca">
         <div class="section-heading">
           <div>
             <p class="eyebrow">COMUNICAZIONI UFFICIALI</p>
@@ -179,7 +210,7 @@
       </section>
 
       <!-- CALENDARIO -->
-      <section class="content-panel panel" id="calendario">
+      <section class="content-panel panel page-view" id="calendario" data-page="calendario">
         <div class="section-heading">
           <div>
             <p class="eyebrow">PIANIFICAZIONE</p>
@@ -245,7 +276,7 @@
       </section>
 
       <!-- PRESENZE -->
-      <section class="content-panel panel" id="presenze">
+      <section class="content-panel panel page-view" id="presenze" data-page="presenze">
         <div class="section-heading">
           <div>
             <p class="eyebrow">PARTECIPAZIONE</p>
@@ -318,7 +349,7 @@
       </section>
 
       <!-- DOCUMENTI -->
-      <section class="content-panel panel" id="documenti">
+      <section class="content-panel panel page-view" id="documenti" data-page="documenti">
         <div class="section-heading">
           <div>
             <p class="eyebrow">ARCHIVIO RISERVATO</p>
@@ -405,7 +436,7 @@
       </section>
 
       <!-- GALLERIA -->
-      <section class="content-panel panel" id="galleria">
+      <section class="content-panel panel page-view" id="galleria" data-page="galleria">
         <div class="section-heading">
           <div>
             <p class="eyebrow">FOTOGRAFIE</p>
@@ -419,7 +450,7 @@
       </section>
 
       <!-- GESTIONE MEMBRI -->
-      <section class="content-panel panel" id="membri">
+      <section class="content-panel panel page-view" id="membri" data-page="membri">
         <div class="section-heading">
           <div>
             <p class="eyebrow">PERSONALE</p>
@@ -468,9 +499,11 @@
         </div>
       </section>
 
-      <footer class="app-footer">
-        1ª COMPAGNIA EASY <span>·</span> DAL 2006 <span>·</span> AREA RISERVATA
-      </footer>
+          <footer class="app-footer">
+            1ª COMPAGNIA EASY <span>·</span> DAL 2006 <span>·</span> AREA RISERVATA
+          </footer>
+        </div>
+      </div>
     </section>
   </main>
 
