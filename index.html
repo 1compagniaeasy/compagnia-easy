@@ -85,6 +85,7 @@
             <a href="#documenti" data-nav="documenti"><span>▣</span> Documenti</a>
             <a href="#galleria" data-nav="galleria"><span>▧</span> Galleria</a>
             <a href="#membri" data-nav="membri"><span>♙</span> Membri</a>
+            <a href="#profilo" data-nav="profilo"><span>◉</span> Profilo</a>
           </nav>
           <div class="sidebar-foot"><span class="sidebar-status-dot"></span> PORTALE OPERATIVO</div>
         </aside>
@@ -110,6 +111,11 @@
       <div id="admin-banner" class="admin-banner hidden">
         MODALITÀ AMMINISTRATORE — gestione riservata
       </div>
+
+      <section class="content-panel panel birthday-panel" aria-labelledby="birthdays-title">
+        <div class="section-heading"><div><p class="eyebrow">VITA DELLA COMPAGNIA</p><h2 id="birthdays-title">Compleanni</h2></div><span class="tag">OGGI</span></div>
+        <div id="birthdays-list" class="birthday-list"><p class="muted">Caricamento compleanni...</p></div>
+      </section>
 
       <div class="quick-grid">
         <a class="module-card" href="#bacheca">
@@ -447,6 +453,21 @@
         <div class="empty-state">
           La galleria sarà disponibile prossimamente.
         </div>
+      </section>
+
+      <!-- PROFILO PERSONALE -->
+      <section class="content-panel panel page-view" id="profilo" data-page="profilo">
+        <div class="section-heading"><div><p class="eyebrow">AREA PERSONALE</p><h2>Il mio profilo</h2></div><span class="tag">DATI MEMBRO</span></div>
+        <p class="muted">Nome, cognome, data di nascita e nickname sono gestiti direttamente da te. Il ruolo e lo stato sono assegnati dagli amministratori.</p>
+        <form id="profile-form" class="profile-form">
+          <label for="profile-first-name">Nome</label><input id="profile-first-name" maxlength="60" autocomplete="given-name" required />
+          <label for="profile-last-name">Cognome</label><input id="profile-last-name" maxlength="60" autocomplete="family-name" required />
+          <label for="profile-nickname">Nickname</label><input id="profile-nickname" maxlength="30" placeholder="Come vuoi essere chiamato in squadra" required />
+          <label for="profile-birthday">Data di nascita</label><input id="profile-birthday" type="date" required />
+          <div class="profile-readonly"><span>Ruolo squadra</span><strong id="profile-role">Membro</strong><span>Stato</span><strong id="profile-status">Attivo</strong></div>
+          <button class="button button-primary" type="submit">Salva profilo</button>
+          <p id="profile-message" class="message" role="status"></p>
+        </form>
       </section>
 
       <!-- GESTIONE MEMBRI -->

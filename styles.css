@@ -3840,3 +3840,17 @@ select {
   .event-card > .member-controls { grid-template-columns: 1fr; }
   .event-card > .member-controls button { min-height: 40px; }
 }
+}
+
+
+/* PROFILI, COMPLEANNI E DATI PERSONALI */
+.birthday-panel { margin: 18px 0 24px; }
+.birthday-list { display: grid; gap: 10px; }
+.birthday-person { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px 14px; border:1px solid var(--line); border-radius:12px; background:var(--panel2); }
+.birthday-person span { color:var(--olive2); font-size:13px; }
+.profile-form { display:grid; gap:10px; max-width:560px; }
+.profile-form input { width:100%; }
+.profile-readonly { display:grid; grid-template-columns:1fr 1fr; gap:8px 14px; margin:10px 0; padding:14px; border:1px solid var(--line); border-radius:12px; background:var(--panel2); }
+.profile-readonly span { color:var(--muted); font-size:12px; }
+.profile-readonly strong { text-align:right; }
+@media (max-width:600px) { .birthday-person { padding:11px; } .profile-readonly { grid-template-columns:1fr auto; } }

@@ -102,6 +102,8 @@ let currentUser = null;
 let currentRole = 'member';
 let allEvents = [];
 let selectedEventId = null;
+let currentMember = {};
+let membersByUid = new Map();
 
 function showMessage(element, message, isError = false) {
   if (!element) return;
@@ -140,6 +142,8 @@ function showApp(user, role) {
     history.replaceState(null, '', `${window.location.pathname}${window.location.search}#home`);
   }
   renderCurrentPage();
+  loadOwnProfile();
+  loadBirthdays();
 
   $('#admin-banner').classList.toggle('hidden', role !== 'admin');
 
@@ -229,6 +233,10 @@ onAuthStateChanged(auth, async user => {
       await setDoc(memberRef, {
         email: user.email,
         name: user.displayName || user.email,
+        firstName: '',
+        lastName: '',
+        nickname: '',
+        birthDate: '',
         role: invite.role,
         active: true,
         createdAt: serverTimestamp()
@@ -238,6 +246,7 @@ onAuthStateChanged(auth, async user => {
     }
 
     const member = memberSnap.data();
+    currentMember = { ...member };
 
     if (member.active !== true) {
       await signOut(auth);
@@ -256,6 +265,69 @@ onAuthStateChanged(auth, async user => {
     showLogin('Errore nella verifica dei permessi. Riprova più tardi.');
   }
 });
+
+/* PROFILO PERSONALE E COMPLEANNI */
+function displayMemberName(member) {
+  return (member?.nickname || [member?.firstName, member?.lastName].filter(Boolean).join(' ') || member?.name || member?.email || 'Membro').trim();
+}
+
+async function loadOwnProfile() {
+  if (!currentUser) return;
+  try {
+    const snap = await getDoc(doc(db, 'members', currentUser.uid));
+    if (!snap.exists()) return;
+    currentMember = snap.data();
+    $('#profile-first-name').value = currentMember.firstName || '';
+    $('#profile-last-name').value = currentMember.lastName || '';
+    $('#profile-nickname').value = currentMember.nickname || '';
+    $('#profile-birthday').value = currentMember.birthDate ? `2000-${currentMember.birthDate}` : '';
+    $('#profile-role').textContent = roleLabel(currentMember.teamRole || currentMember.role);
+    $('#profile-status').textContent = currentMember.active ? 'Attivo' : 'Sospeso';
+    const visibleName = displayMemberName(currentMember);
+    $('#user-name').textContent = visibleName;
+    $('#user-avatar').textContent = visibleName.slice(0, 2).toUpperCase();
+    $('#welcome-text').textContent = `Bentornato, ${visibleName}.`;
+  } catch (error) { console.error(error); showMessage($('#profile-message'), 'Impossibile caricare il profilo.', true); }
+}
+
+function roleLabel(role) {
+  const labels = { admin: 'Amministratore', member: 'Membro', 'capo-squadra': 'Capo squadra', 'vice-capo-squadra': 'Vice capo squadra', operatore: 'Operatore' };
+  return labels[role] || role || 'Membro';
+}
+
+$('#profile-form').addEventListener('submit', async event => {
+  event.preventDefault();
+  if (!currentUser) return;
+  const firstName = $('#profile-first-name').value.trim();
+  const lastName = $('#profile-last-name').value.trim();
+  const nickname = $('#profile-nickname').value.trim();
+  const enteredBirthDate = $('#profile-birthday').value;
+  const birthDate = enteredBirthDate ? enteredBirthDate.slice(5) : '';
+  if (!firstName || !lastName || !nickname || !birthDate) { showMessage($('#profile-message'), 'Compila tutti i campi.', true); return; }
+  const button = $('#profile-form').querySelector('button[type="submit"]'); button.disabled = true;
+  try {
+    await updateDoc(doc(db, 'members', currentUser.uid), { firstName, lastName, nickname, birthDate, profileUpdatedAt: serverTimestamp() });
+    currentMember = { ...currentMember, firstName, lastName, nickname, birthDate };
+    showMessage($('#profile-message'), 'Profilo aggiornato.');
+    const visibleName = displayMemberName(currentMember);
+    $('#user-name').textContent = visibleName; $('#user-avatar').textContent = visibleName.slice(0,2).toUpperCase();
+    $('#welcome-text').textContent = `Bentornato, ${visibleName}.`;
+    await loadBirthdays();
+  } catch (error) { console.error(error); showMessage($('#profile-message'), 'Salvataggio non riuscito. Verifica le regole Firestore.', true); }
+  finally { button.disabled = false; }
+});
+
+async function loadBirthdays() {
+  const target = $('#birthdays-list'); if (!target) return;
+  try {
+    const snap = await getDocs(collection(db, 'members'));
+    const today = new Date(); const mmdd = `${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+    const birthdays = snap.docs.map(d => ({ uid: d.id, ...d.data() })).filter(m => m.active === true && /^\d{2}-\d{2}$/.test(m.birthDate || '') && m.birthDate === mmdd);
+    target.replaceChildren();
+    if (!birthdays.length) { const p = document.createElement('p'); p.className = 'muted'; p.textContent = 'Nessun compleanno oggi.'; target.append(p); return; }
+    birthdays.forEach(member => { const row = document.createElement('div'); row.className = 'birthday-person'; const name = document.createElement('strong'); name.textContent = displayMemberName(member); const label = document.createElement('span'); label.textContent = 'Buon compleanno!'; row.append(name, label); target.append(row); });
+  } catch (error) { console.error(error); target.textContent = 'Compleanni momentaneamente non disponibili.'; }
+}
 
 /* INVITO DI UN NUOVO COMPONENTE */
 
@@ -320,19 +392,22 @@ async function loadMembers() {
       const email = document.createElement('p');
       const status = document.createElement('small');
 
-      name.textContent = member.name || member.email || 'Membro';
-      email.textContent = member.email || '';
-      status.textContent = member.active ? 'ATTIVO' : 'SOSPESO';
-
-      info.append(name, email, status);
+      name.textContent = displayMemberName(member);
+      const details = document.createElement('small');
+      details.textContent = member.email || '';
+      info.append(name, details);
+      status.textContent = `${roleLabel(member.teamRole || 'member')} · ${member.active ? 'ATTIVO' : 'SOSPESO'}`;
+      info.append(status);
 
       const controls = document.createElement('div');
       controls.className = 'member-controls';
 
       const roleSelect = document.createElement('select');
       roleSelect.add(new Option('Membro', 'member'));
-      roleSelect.add(new Option('Amministratore', 'admin'));
-      roleSelect.value = member.role || 'member';
+      roleSelect.add(new Option('Capo squadra', 'capo-squadra'));
+      roleSelect.add(new Option('Vice capo squadra', 'vice-capo-squadra'));
+      roleSelect.add(new Option('Operatore', 'operatore'));
+      roleSelect.value = member.teamRole || 'member';
 
       const statusButton = document.createElement('button');
       statusButton.type = 'button';
@@ -347,7 +422,7 @@ async function loadMembers() {
       roleSelect.addEventListener('change', async () => {
         try {
           await updateDoc(doc(db, 'members', uid), {
-            role: roleSelect.value
+            teamRole: roleSelect.value
           });
         } catch (error) {
           console.error(error);
@@ -852,9 +927,12 @@ async function loadAttendance(eventId) {
   try {
     const snapshot = await getDocs(collection(db, 'attendance'));
 
+    const membersSnapshot = await getDocs(collection(db, 'members'));
+    membersByUid = new Map(membersSnapshot.docs.map(d => [d.id, d.data()]));
     const responses = snapshot.docs
       .map(item => ({ id: item.id, ...item.data() }))
-      .filter(item => item.eventId === eventId);
+      .filter(item => item.eventId === eventId)
+      .map(item => ({ ...item, name: displayMemberName(membersByUid.get(item.uid)) }));
 
     const myResponse = responses.find(item => item.uid === currentUser.uid);
 
@@ -877,8 +955,6 @@ async function loadAttendance(eventId) {
     appendAttendanceGroup(attendanceList, 'ASSENTI', absent, 'absent');
 
     if (currentRole === 'admin') {
-      const membersSnapshot = await getDocs(collection(db, 'members'));
-
       const activeMembers = membersSnapshot.docs
         .map(item => ({ uid: item.id, ...item.data() }))
         .filter(item => item.active === true);
@@ -904,7 +980,7 @@ async function loadAttendance(eventId) {
         unanswered.forEach(member => {
           const row = document.createElement('div');
           row.className = 'attendance-person';
-          row.textContent = member.name || member.email || 'Membro';
+          row.textContent = displayMemberName(member);
           group.append(row);
         });
       }
@@ -942,7 +1018,7 @@ function appendAttendanceGroup(container, title, people, status) {
       row.className = 'attendance-person';
 
       const name = document.createElement('span');
-      name.textContent = person.name || 'Membro';
+      name.textContent = displayMemberName(membersByUid.get(person.uid)) || person.name || 'Membro';
 
       const badge = document.createElement('span');
       badge.className = `attendance-badge ${status}`;
@@ -975,7 +1051,7 @@ async function saveAttendance(status) {
       {
         eventId: selectedEventId,
         uid: currentUser.uid,
-        name: currentUser.displayName || currentUser.email || 'Membro',
+        name: displayMemberName(currentMember),
         status,
         updatedAt: serverTimestamp()
       },
@@ -1486,7 +1562,7 @@ async function deleteDocument(item) {
 
 
 /* NAVIGAZIONE TRA LE PAGINE DELL'AREA MEMBRI */
-const validPages = new Set(['home', 'bacheca', 'calendario', 'presenze', 'documenti', 'galleria', 'membri']);
+const validPages = new Set(['home', 'bacheca', 'calendario', 'presenze', 'documenti', 'galleria', 'membri', 'profilo']);
 
 function renderCurrentPage() {
   if (!appView || appView.classList.contains('hidden')) return;
@@ -1512,7 +1588,8 @@ function renderCurrentPage() {
     presenze: 'Presenze',
     documenti: 'Documenti',
     galleria: 'Galleria',
-    membri: 'Membri'
+    membri: 'Membri',
+    profilo: 'Il mio profilo'
   };
   document.title = `${titles[activePage]} — 1ª Compagnia Easy`;
   window.scrollTo({ top: 0, behavior: 'auto' });
