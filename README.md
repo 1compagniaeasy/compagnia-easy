@@ -63,3 +63,13 @@ La PWA richiede HTTPS, fornito da GitHub Pages.
 4. Calendario eventi e modulo presenze con dati privati in Firestore.
 5. Documenti e galleria con archiviazione e permessi adeguati.
 6. Rifinire installazione, icone e test iOS/Android.
+
+
+## Storico presenze e notifiche push (nuova fase)
+
+- La pagina `Statistiche` legge gli allenamenti passati e le risposte Firestore; mostra il riepilogo personale e, agli amministratori, quello della squadra. Gli eventi annullati e futuri sono esclusi.
+- La pagina `Notifiche` è predisposta, ma il pulsante resta informativo finché non viene inserita la chiave Web Push VAPID e completata la configurazione FCM. Non mostra un falso stato di attivazione.
+- `firebase-messaging-sw.js` è il worker FCM da configurare con la stessa Firebase Web App config.
+- `functions/` contiene trigger server-side per nuove comunicazioni, creazione/modifica/annullamento eventi e promemoria circa 24 ore prima per i membri attivi che non hanno risposto.
+- Prima di distribuire le notifiche: inserire la chiave VAPID pubblica nel client, configurare il worker con la Firebase config corretta, implementare la registrazione token con Firebase Messaging e salvare i token in `members/{uid}/devices/{deviceId}`; distribuire le Cloud Functions. La distribuzione di Cloud Functions e Scheduler può richiedere il piano Firebase Blaze e un account di fatturazione.
+- Il file `functions/index.js` è una base server-side: prima della produzione va testato con eventi reali, timezone locale e regole/indici Firestore del progetto.

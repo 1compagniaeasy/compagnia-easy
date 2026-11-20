@@ -27,6 +27,11 @@ service cloud.firestore {
       allow delete: if admin();
       allow update: if admin();
     }
+    match /members/{uid}/devices/{deviceId} {
+      // Ogni membro gestisce soltanto i token dei propri dispositivi.
+      allow read, create, update, delete: if activeMember() && request.auth.uid == uid;
+    }
+
     match /invites/{email} {
       allow read: if admin() || (signedIn() && request.auth.token.email == email);
       allow create, update, delete: if admin();

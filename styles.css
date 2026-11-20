@@ -3801,48 +3801,6 @@ select {
 }
 
 
-/* MOBILE UX PATCH — schede allenamenti e comandi */
-@media (max-width: 680px) {
-  .app-main .content-panel { padding: clamp(15px, 4vw, 20px); overflow: hidden; }
-  .event-list { gap: 12px; }
-  .event-card {
-    display: grid; grid-template-columns: 54px minmax(0, 1fr);
-    align-items: start; gap: 12px; padding: 14px; border-radius: 13px;
-  }
-  .event-date { grid-column: 1; grid-row: 1; width: 54px; height: 62px; margin-top: 2px; }
-  .event-info { grid-column: 2; grid-row: 1; min-width: 0; overflow-wrap: anywhere; }
-  .event-info h3 {
-    margin: 0 0 8px; font-size: clamp(18px, 5vw, 22px);
-    line-height: 1.15; overflow-wrap: anywhere;
-  }
-  .event-info p {
-    margin: 5px 0; font-size: 13px; line-height: 1.5; overflow-wrap: anywhere;
-  }
-  .event-info p:first-of-type { color: #d0d8c5; }
-  .event-card > .member-controls {
-    grid-column: 1 / -1; display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 7px; width: 100%; margin-top: 3px;
-  }
-  .event-card > .member-controls button, .event-card > button {
-    min-width: 0; min-height: 42px; padding: 9px 6px;
-    font-size: 12px; white-space: normal;
-  }
-  .event-card .button { width: 100%; }
-  .section-heading { align-items: flex-start; gap: 10px; }
-  .section-heading .tag { max-width: 42%; white-space: normal; text-align: right; }
-  .admin-form, .admin-form form { min-width: 0; }
-  .content-panel input, .content-panel select, .content-panel textarea { max-width: 100%; font-size: 16px; }
-}
-@media (max-width: 380px) {
-  .event-card { grid-template-columns: 48px minmax(0, 1fr); gap: 9px; padding: 11px; }
-  .event-date { width: 48px; height: 58px; }
-  .event-card > .member-controls { grid-template-columns: 1fr; }
-  .event-card > .member-controls button { min-height: 40px; }
-}
-}
-
-
 /* PROFILI, COMPLEANNI E DATI PERSONALI */
 .birthday-panel { margin: 18px 0 24px; }
 .birthday-list { display: grid; gap: 10px; }
@@ -3854,3 +3812,25 @@ select {
 .profile-readonly span { color:var(--muted); font-size:12px; }
 .profile-readonly strong { text-align:right; }
 @media (max-width:600px) { .birthday-person { padding:11px; } .profile-readonly { grid-template-columns:1fr auto; } }
+
+
+/* STATISTICHE E CENTRO NOTIFICHE */
+.stats-summary { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; margin:18px 0; }
+.stats-tile { background:#ffffff08; border:1px solid var(--line); border-radius:9px; padding:16px 12px; }
+.stats-tile strong { display:block; font:700 30px 'Barlow Condensed',sans-serif; color:var(--olive2); }
+.stats-tile span { display:block; margin-top:4px; color:var(--muted); font-size:9px; letter-spacing:.08em; }
+.stats-history-row { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:13px 2px; border-bottom:1px solid var(--line); }
+.stats-history-row div { display:grid; gap:4px; min-width:0; }
+.stats-history-row small { color:var(--muted); }
+.stats-status { flex:0 0 auto; border-radius:30px; padding:6px 9px; font-size:9px; letter-spacing:.05em; font-weight:700; }
+.stats-status.present { color:#c7e3b1; background:#466b3438; }
+.stats-status.absent { color:#e7b6a4; background:#7a403538; }
+.stats-status.unanswered { color:#d8c99f; background:#77633238; }
+.stats-table-wrap { overflow-x:auto; }
+.stats-table { min-width:520px; }
+.stats-table-row { display:grid; grid-template-columns:minmax(120px,1.5fr) repeat(4,minmax(72px,1fr)); gap:8px; padding:11px 8px; border-bottom:1px solid var(--line); font-size:12px; }
+.stats-table-row span { overflow-wrap:anywhere; }
+.stats-table-head { color:var(--muted); font-size:9px; letter-spacing:.05em; font-weight:700; }
+.notification-intro,.notification-policy { border:1px solid var(--line); background:#ffffff06; border-radius:10px; padding:18px; margin:14px 0; }
+.notification-intro h3 { margin-top:0; }
+@media(max-width:650px) { .stats-summary { grid-template-columns:repeat(2,minmax(0,1fr)); } .stats-history-row { align-items:flex-start; } .stats-status { white-space:nowrap; font-size:8px; } }

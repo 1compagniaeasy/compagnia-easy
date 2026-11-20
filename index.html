@@ -7,8 +7,8 @@
   <meta name="theme-color" content="#151b14" />
   <meta name="description" content="Area riservata della 1ª Compagnia Easy." />
   <link rel="manifest" href="manifest.json" />
-  <link rel="icon" type="image/png" sizes="192x192" href="assets/icon-192.png" />
-  <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png" />
+  <link rel="icon" href="assets/icon-192.png" />
+  <link rel="apple-touch-icon" href="assets/icon-192.png" />
   <link rel="stylesheet" href="styles.css" />
   <title>1ª Compagnia Easy — Members Area</title>
 </head>
@@ -82,6 +82,8 @@
             <a href="#bacheca" data-nav="bacheca"><span>▤</span> Bacheca</a>
             <a href="#calendario" data-nav="calendario"><span>▦</span> Calendario</a>
             <a href="#presenze" data-nav="presenze"><span>✓</span> Presenze</a>
+            <a href="#statistiche" data-nav="statistiche"><span>▥</span> Statistiche</a>
+            <a href="#notifiche" data-nav="notifiche"><span>♧</span> Notifiche</a>
             <a href="#documenti" data-nav="documenti"><span>▣</span> Documenti</a>
             <a href="#galleria" data-nav="galleria"><span>▧</span> Galleria</a>
             <a href="#membri" data-nav="membri"><span>♙</span> Membri</a>
@@ -352,6 +354,53 @@
         <div id="attendance-empty" class="empty-state">
           Non ci sono allenamenti disponibili.
         </div>
+      </section>
+
+      <!-- STATISTICHE PRESENZE -->
+      <section class="content-panel panel page-view" id="statistiche" data-page="statistiche">
+        <div class="section-heading">
+          <div><p class="eyebrow">PARTECIPAZIONE</p><h2>Storico presenze</h2></div>
+          <span class="tag">STATISTICHE</span>
+        </div>
+        <p class="muted">Riepilogo degli allenamenti passati. Le risposte mancanti sono distinte dalle assenze comunicate.</p>
+        <label for="stats-period">Periodo</label>
+        <select id="stats-period">
+          <option value="all">Tutto lo storico</option>
+          <option value="month">Ultimo mese</option>
+          <option value="quarter">Ultimi 3 mesi</option>
+          <option value="year">Anno corrente</option>
+        </select>
+        <div class="stats-summary">
+          <div class="stats-tile"><strong id="stats-total">—</strong><span>ALLENAMENTI</span></div>
+          <div class="stats-tile"><strong id="stats-present">—</strong><span>PRESENZE</span></div>
+          <div class="stats-tile"><strong id="stats-absent">—</strong><span>ASSENZE</span></div>
+          <div class="stats-tile"><strong id="stats-rate">—</strong><span>PARTECIPAZIONE</span></div>
+        </div>
+        <div id="stats-personal" class="stats-table-wrap"></div>
+        <div id="stats-admin" class="hidden">
+          <h3>Riepilogo squadra</h3>
+          <div id="stats-members" class="stats-table-wrap"></div>
+        </div>
+        <p id="stats-message" class="message" role="status"></p>
+      </section>
+
+      <!-- NOTIFICHE PUSH -->
+      <section class="content-panel panel page-view" id="notifiche" data-page="notifiche">
+        <div class="section-heading">
+          <div><p class="eyebrow">AGGIORNAMENTI DELLA COMPAGNIA</p><h2>Notifiche</h2></div>
+          <span class="tag">PUSH</span>
+        </div>
+        <div class="notification-intro">
+          <h3>Resta aggiornato</h3>
+          <p class="muted">Attiva le notifiche per ricevere avvisi su nuovi allenamenti, modifiche, annullamenti e comunicazioni del direttivo.</p>
+          <button id="notifications-enable" class="button button-primary" type="button">Attiva notifiche su questo dispositivo</button>
+          <p id="notifications-message" class="message" role="status"></p>
+        </div>
+        <div class="notification-policy">
+          <strong>Chi riceve gli avvisi?</strong>
+          <p class="muted">Tutti i membri attivi che hanno attivato le notifiche su almeno un dispositivo. Gli account sospesi vengono esclusi automaticamente.</p>
+        </div>
+        <p class="muted small">Le notifiche push saranno attivabili dopo la configurazione della chiave Web Push e del servizio di invio Firebase da parte dell'amministratore.</p>
       </section>
 
       <!-- DOCUMENTI -->

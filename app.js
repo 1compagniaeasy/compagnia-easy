@@ -1,4 +1,5 @@
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js';
+import { getMessaging, getToken, onMessage, isSupported } from 'https://www.gstatic.com/firebasejs/11.6.0/firebase-messaging.js';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.57.4';
 
 import {
@@ -35,6 +36,8 @@ const firebaseConfig = {
 const firebaseApp = initializeApp(firebaseConfig);
 const auth = getAuth(firebaseApp);
 const db = getFirestore(firebaseApp);
+// Inserire qui la chiave pubblica Web Push generata in Firebase Console > Cloud Messaging.
+const firebaseVapidKey = 'INSERISCI_CHIAVE_VAPID_PUBBLICA';
 
 // SUPABASE: archivio PDF privato. L'autenticazione resta gestita da Firebase.
 const supabaseUrl = 'https://iqwftffzaqwfpxdistbb.supabase.co';
@@ -144,6 +147,7 @@ function showApp(user, role) {
   renderCurrentPage();
   loadOwnProfile();
   loadBirthdays();
+  loadAttendanceStatistics();
 
   $('#admin-banner').classList.toggle('hidden', role !== 'admin');
 
@@ -311,7 +315,6 @@ $('#profile-form').addEventListener('submit', async event => {
     showMessage($('#profile-message'), 'Profilo aggiornato.');
     const visibleName = displayMemberName(currentMember);
     $('#user-name').textContent = visibleName; $('#user-avatar').textContent = visibleName.slice(0,2).toUpperCase();
-    $('#welcome-text').textContent = `Bentornato, ${visibleName}.`;
     await loadBirthdays();
   } catch (error) { console.error(error); showMessage($('#profile-message'), 'Salvataggio non riuscito. Verifica le regole Firestore.', true); }
   finally { button.disabled = false; }
@@ -322,7 +325,7 @@ async function loadBirthdays() {
   try {
     const snap = await getDocs(collection(db, 'members'));
     const today = new Date(); const mmdd = `${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
-    const birthdays = snap.docs.map(d => ({ uid: d.id, ...d.data() })).filter(m => m.active === true && /^\d{2}-\d{2}$/.test(m.birthDate || '') && m.birthDate === mmdd);
+    const birthdays = snap.docs.map(d => ({ uid: d.id, ...d.data() })).filter(m => m.active === true && /^\d{4}-\d{2}-\d{2}$/.test(m.birthDate || '') && m.birthDate === mmdd);
     target.replaceChildren();
     if (!birthdays.length) { const p = document.createElement('p'); p.className = 'muted'; p.textContent = 'Nessun compleanno oggi.'; target.append(p); return; }
     birthdays.forEach(member => { const row = document.createElement('div'); row.className = 'birthday-person'; const name = document.createElement('strong'); name.textContent = displayMemberName(member); const label = document.createElement('span'); label.textContent = 'Buon compleanno!'; row.append(name, label); target.append(row); });
@@ -1561,8 +1564,91 @@ async function deleteDocument(item) {
 
 
 
+/* STORICO E STATISTICHE PRESENZE */
+async function loadAttendanceStatistics() {
+  const message = $('#stats-message');
+  if (!currentUser) return;
+  if (message) showMessage(message, 'Caricamento statistiche...');
+  try {
+    const [eventsSnap, attendanceSnap, membersSnap] = await Promise.all([
+      getDocs(collection(db, 'events')),
+      getDocs(collection(db, 'attendance')),
+      getDocs(collection(db, 'members'))
+    ]);
+    const now = new Date();
+    const period = $('#stats-period')?.value || 'all';
+    let cutoff = null;
+    if (period === 'month') cutoff = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
+    if (period === 'quarter') cutoff = new Date(now.getFullYear(), now.getMonth() - 3, now.getDate());
+    if (period === 'year') cutoff = new Date(now.getFullYear(), 0, 1);
+    const events = eventsSnap.docs.map(d => ({ id: d.id, ...d.data() }))
+      .filter(e => e.status !== 'cancelled' && e.date && e.date < todayString())
+      .filter(e => !cutoff || new Date(`${e.date}T23:59:59`) >= cutoff)
+      .sort((a,b) => (b.date || '').localeCompare(a.date || ''));
+    const attendance = attendanceSnap.docs.map(d => d.data());
+    const members = membersSnap.docs.map(d => ({ uid: d.id, ...d.data() })).filter(m => m.active === true);
+    const myRows = events.map(event => {
+      const response = attendance.find(a => a.eventId === event.id && a.uid === currentUser.uid);
+      return { event, status: response?.status || 'unanswered' };
+    });
+    const mine = {
+      total: myRows.length,
+      present: myRows.filter(r => r.status === 'present').length,
+      absent: myRows.filter(r => r.status === 'absent').length,
+      unanswered: myRows.filter(r => r.status === 'unanswered').length
+    };
+    const rate = mine.total ? Math.round(mine.present / mine.total * 100) : 0;
+    $('#stats-total').textContent = mine.total;
+    $('#stats-present').textContent = mine.present;
+    $('#stats-absent').textContent = mine.absent;
+    $('#stats-rate').textContent = `${rate}%`;
+    const personal = $('#stats-personal');
+    personal.replaceChildren();
+    const heading = document.createElement('h3'); heading.textContent = 'Il mio storico'; personal.append(heading);
+    if (!myRows.length) {
+      const empty = document.createElement('p'); empty.className = 'muted'; empty.textContent = 'Non ci sono ancora allenamenti passati nel periodo selezionato.'; personal.append(empty);
+    } else {
+      myRows.forEach(({event,status}) => {
+        const row = document.createElement('div'); row.className = 'stats-history-row';
+        const details = document.createElement('div');
+        const title = document.createElement('strong'); title.textContent = event.title || 'Allenamento';
+        const date = document.createElement('small'); date.textContent = formatDate(event.date);
+        details.append(title,date);
+        const badge = document.createElement('span'); badge.className = `stats-status ${status}`;
+        badge.textContent = status === 'present' ? 'PRESENTE' : status === 'absent' ? 'ASSENTE' : 'NESSUNA RISPOSTA';
+        row.append(details,badge); personal.append(row);
+      });
+    }
+    const adminPanel = $('#stats-admin');
+    adminPanel.classList.toggle('hidden', currentRole !== 'admin');
+    if (currentRole === 'admin') {
+      const table = $('#stats-members'); table.replaceChildren();
+      if (!members.length || !events.length) { table.textContent = 'Non ci sono ancora dati sufficienti.'; }
+      else {
+        const wrapper = document.createElement('div'); wrapper.className = 'stats-table';
+        const header = document.createElement('div'); header.className = 'stats-table-row stats-table-head';
+        ['MEMBRO','PRESENTI','ASSENTI','NO RISPOSTA','%'].forEach(label => { const cell=document.createElement('span'); cell.textContent=label; header.append(cell); });
+        wrapper.append(header);
+        members.sort((a,b)=>displayMemberName(a).localeCompare(displayMemberName(b),'it')).forEach(member => {
+          const counts = {present:0, absent:0, unanswered:0};
+          events.forEach(event => { const r=attendance.find(a=>a.eventId===event.id && a.uid===member.uid); if (r?.status==='present') counts.present++; else if (r?.status==='absent') counts.absent++; else counts.unanswered++; });
+          const pct = events.length ? Math.round(counts.present/events.length*100) : 0;
+          const row=document.createElement('div'); row.className='stats-table-row';
+          [displayMemberName(member),counts.present,counts.absent,counts.unanswered,`${pct}%`].forEach(value=>{const cell=document.createElement('span');cell.textContent=value;row.append(cell);});
+          wrapper.append(row);
+        });
+        table.append(wrapper);
+      }
+    }
+    if (message) showMessage(message, 'Statistiche aggiornate.');
+  } catch (error) {
+    console.error(error);
+    if (message) showMessage(message, 'Non è stato possibile caricare lo storico. Verifica i permessi Firestore.', true);
+  }
+}
+
 /* NAVIGAZIONE TRA LE PAGINE DELL'AREA MEMBRI */
-const validPages = new Set(['home', 'bacheca', 'calendario', 'presenze', 'documenti', 'galleria', 'membri', 'profilo']);
+const validPages = new Set(['home', 'bacheca', 'calendario', 'presenze', 'statistiche', 'notifiche', 'documenti', 'galleria', 'membri', 'profilo']);
 
 function renderCurrentPage() {
   if (!appView || appView.classList.contains('hidden')) return;
@@ -1586,6 +1672,8 @@ function renderCurrentPage() {
     bacheca: 'Bacheca',
     calendario: 'Calendario',
     presenze: 'Presenze',
+    statistiche: 'Statistiche',
+    notifiche: 'Notifiche',
     documenti: 'Documenti',
     galleria: 'Galleria',
     membri: 'Membri',
@@ -1595,7 +1683,11 @@ function renderCurrentPage() {
   window.scrollTo({ top: 0, behavior: 'auto' });
 }
 
-window.addEventListener('hashchange', renderCurrentPage);
+window.addEventListener('hashchange', () => {
+  renderCurrentPage();
+  if ((location.hash || '').slice(1) === 'statistiche') loadAttendanceStatistics();
+});
+$('#stats-period')?.addEventListener('change', loadAttendanceStatistics);
 
 /* STATO DELLA CONNESSIONE */
 
@@ -1616,3 +1708,39 @@ if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('./sw.js').catch(console.error);
   });
 }
+
+/* ATTIVAZIONE NOTIFICHE PUSH — richiede VAPID e Firebase Cloud Messaging configurati */
+$('#notifications-enable')?.addEventListener('click', async () => {
+  const button = $('#notifications-enable');
+  const message = $('#notifications-message');
+  if (!currentUser) return;
+  if (!('Notification' in window) || !('serviceWorker' in navigator) || !(await isSupported())) {
+    showMessage(message, 'Questo browser o dispositivo non supporta le notifiche push per questa installazione.', true);
+    return;
+  }
+  if (!firebaseVapidKey || firebaseVapidKey.startsWith('INSERISCI_')) {
+    showMessage(message, 'Configurazione quasi pronta: manca la chiave pubblica Web Push VAPID di Firebase. Non attivare ancora: va inserita dall’amministratore nel progetto.', true);
+    return;
+  }
+  button.disabled = true;
+  try {
+    const permission = await Notification.requestPermission();
+    if (permission !== 'granted') throw new Error('Permesso notifiche non concesso.');
+    const registration = await navigator.serviceWorker.register('./firebase-messaging-sw.js');
+    const messaging = getMessaging(firebaseApp);
+    const token = await getToken(messaging, { vapidKey: firebaseVapidKey, serviceWorkerRegistration: registration });
+    if (!token) throw new Error('Firebase non ha restituito un token per questo dispositivo.');
+    await setDoc(doc(db, 'members', currentUser.uid, 'devices', token), { token, platform: /iPhone|iPad|iPod/i.test(navigator.userAgent) ? 'ios' : 'web', createdAt: serverTimestamp(), updatedAt: serverTimestamp() }, { merge: true });
+    onMessage(messaging, payload => {
+      const title = payload.notification?.title || '1ª Compagnia Easy';
+      const body = payload.notification?.body || 'Hai un nuovo aggiornamento.';
+      showMessage(message, `${title}: ${body}`);
+    });
+    showMessage(message, 'Notifiche attivate su questo dispositivo.');
+  } catch (error) {
+    console.error(error);
+    showMessage(message, error.message || 'Non è stato possibile attivare le notifiche.', true);
+  } finally {
+    button.disabled = false;
+  }
+});
