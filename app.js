@@ -1,4 +1,5 @@
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.57.4';
 
 import {
   getAuth,
@@ -35,6 +36,17 @@ const firebaseApp = initializeApp(firebaseConfig);
 const auth = getAuth(firebaseApp);
 const db = getFirestore(firebaseApp);
 
+// SUPABASE: archivio PDF privato. L'autenticazione resta gestita da Firebase.
+const supabaseUrl = 'https://iqwftffzaqwfpxdistbb.supabase.co';
+const supabasePublishableKey = 'sb_publishable_bBrKpzYOL46pWSHTBy0uvQ_D2_p4X-3';
+const documentsBucket = 'documenti-squadra';
+const supabase = createClient(supabaseUrl, supabasePublishableKey, {
+  accessToken: async () => {
+    const user = auth.currentUser;
+    return user ? await user.getIdToken() : null;
+  }
+});
+
 const $ = selector => document.querySelector(selector);
 
 const loginView = $('#login-view');
@@ -60,6 +72,23 @@ const trainingForm = $('#training-form');
 const trainingMessage = $('#training-message');
 const boardEventsList = $('#board-events-list');
 const calendarEventsList = $('#calendar-events-list');
+
+const documentsAdmin = $('#documents-admin');
+const documentCategoryForm = $('#document-category-form');
+const documentCategoryName = $('#document-category-name');
+const documentCategoryMessage = $('#document-category-message');
+const documentCategoriesAdminList = $('#document-categories-admin-list');
+const documentUploadForm = $('#document-upload-form');
+const documentUploadTitle = $('#document-upload-title');
+const documentUploadCategory = $('#document-upload-category');
+const documentUploadFile = $('#document-upload-file');
+const documentUploadMessage = $('#document-upload-message');
+const documentCategoriesList = $('#document-categories-list');
+const documentsList = $('#documents-list');
+const documentsMessage = $('#documents-message');
+
+let documentCategories = [];
+let storedDocuments = [];
 
 const attendanceSelect = $('#attendance-event-select');
 const attendanceDetails = $('#attendance-event-details');
@@ -106,8 +135,7 @@ function showApp(user, role) {
     .join('')
     .toUpperCase();
 
-  $('#welcome-text').textContent =
-    `Bentornato, ${name.split(' ')[0]}.`;
+  $('#welcome-text').textContent = 'Bentornato, ' + name.split(' ')[0] + '.';
 
   $('#admin-banner').classList.toggle('hidden', role !== 'admin');
 
@@ -116,6 +144,7 @@ function showApp(user, role) {
 
   $('#announcements-admin').classList.toggle('hidden', role !== 'admin');
   $('#events-admin').classList.toggle('hidden', role !== 'admin');
+  documentsAdmin.classList.toggle('hidden', role !== 'admin');
 
   if (role === 'admin') {
     loadMembers();
@@ -123,6 +152,7 @@ function showApp(user, role) {
 
   loadAnnouncements();
   loadEvents();
+  loadDocuments();
 }
 
 const provider = new GoogleAuthProvider();
@@ -212,6 +242,8 @@ onAuthStateChanged(auth, async user => {
     }
 
     currentRole = member.role === 'admin' ? 'admin' : 'member';
+    // Forza il rinnovo del token per includere il claim role richiesto da Supabase.
+    await user.getIdToken(true);
     showApp(user, currentRole);
 
   } catch (error) {
@@ -243,7 +275,7 @@ inviteForm.addEventListener('submit', async event => {
       createdAt: serverTimestamp()
     });
 
-    showMessage(inviteMessage, `Invito registrato per ${email}.`);
+    showMessage(inviteMessage, 'Invito registrato per ' + email + '.');
     inviteForm.reset();
 
   } catch (error) {
@@ -994,6 +1026,457 @@ function formatTimestamp(value) {
     dateStyle: 'short',
     timeStyle: 'short'
   });
+}
+
+/* DOCUMENTI PRIVATI - SUPABASE STORAGE + DATABASE */
+
+function safeFileName(value) {
+  return value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-zA-Z0-9._-]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 100) || 'documento.pdf';
+}
+
+function setDocumentMessage(message, isError = false) {
+  showMessage(documentsMessage, message, isError);
+}
+
+async function loadDocuments() {
+  if (!documentsList || !documentCategoriesList) return;
+
+  documentsList.textContent = 'Caricamento documenti...';
+  documentCategoriesList.textContent = 'Caricamento categorie...';
+  if (currentRole === 'admin' && documentCategoriesAdminList) {
+    documentCategoriesAdminList.textContent = 'Caricamento categorie...';
+  }
+
+  try {
+    const [categoryResult, documentResult] = await Promise.all([
+      supabase.from('document_categories').select('id, name').order('name'),
+      supabase.from('documents')
+        .select('id, category_id, title, file_name, storage_path, created_at')
+        .order('created_at', { ascending: false })
+    ]);
+
+    if (categoryResult.error) throw categoryResult.error;
+    if (documentResult.error) throw documentResult.error;
+
+    documentCategories = categoryResult.data || [];
+    storedDocuments = documentResult.data || [];
+
+    renderDocumentCategories();
+    renderDocuments();
+    populateDocumentCategorySelect();
+    setDocumentMessage('Archivio aggiornato.');
+  } catch (error) {
+    console.error('Errore caricamento archivio Supabase:', error);
+    documentsList.textContent = 'Non è stato possibile caricare i documenti.';
+    documentCategoriesList.textContent = 'Non è stato possibile caricare le categorie.';
+    if (documentCategoriesAdminList) {
+      documentCategoriesAdminList.textContent = 'Errore nel caricamento delle categorie.';
+    }
+    setDocumentMessage(
+      'Accesso all’archivio non riuscito. Verifica il collegamento Supabase e che il tuo account sia autorizzato.',
+      true
+    );
+  }
+}
+
+function populateDocumentCategorySelect() {
+  if (!documentUploadCategory) return;
+  const previous = documentUploadCategory.value;
+  documentUploadCategory.replaceChildren(
+    new Option('Seleziona una categoria...', '')
+  );
+  documentCategories.forEach(category => {
+    documentUploadCategory.add(new Option(category.name, String(category.id)));
+  });
+  if (documentCategories.some(category => String(category.id) === previous)) {
+    documentUploadCategory.value = previous;
+  }
+}
+
+function renderDocumentCategories() {
+  documentCategoriesList.replaceChildren();
+  if (!documentCategories.length) {
+    documentCategoriesList.className = 'empty-state';
+    documentCategoriesList.textContent = 'Nessuna categoria disponibile.';
+  } else {
+    documentCategoriesList.className = 'document-category-list';
+    documentCategories.forEach(category => {
+      const row = document.createElement('div');
+      row.className = 'document-category-row';
+      const name = document.createElement('strong');
+      name.textContent = category.name;
+      const count = storedDocuments.filter(item => item.category_id === category.id).length;
+      const amount = document.createElement('small');
+      amount.textContent = `${count} ${count === 1 ? 'documento' : 'documenti'}`;
+      row.append(name, amount);
+      documentCategoriesList.append(row);
+    });
+  }
+
+  if (!documentCategoriesAdminList) return;
+  documentCategoriesAdminList.replaceChildren();
+  if (!documentCategories.length) {
+    documentCategoriesAdminList.textContent = 'Nessuna categoria creata.';
+    return;
+  }
+
+  documentCategories.forEach(category => {
+    const row = document.createElement('div');
+    row.className = 'document-category-row';
+    const name = document.createElement('strong');
+    name.textContent = category.name;
+    const controls = document.createElement('div');
+    controls.className = 'member-controls';
+
+    const renameButton = document.createElement('button');
+    renameButton.type = 'button';
+    renameButton.className = 'button button-quiet';
+    renameButton.textContent = 'Rinomina';
+    renameButton.addEventListener('click', () => renameDocumentCategory(category));
+
+    const deleteButton = document.createElement('button');
+    deleteButton.type = 'button';
+    deleteButton.className = 'button button-quiet';
+    deleteButton.textContent = 'Elimina';
+    deleteButton.addEventListener('click', () => deleteDocumentCategory(category));
+
+    controls.append(renameButton, deleteButton);
+    row.append(name, controls);
+    documentCategoriesAdminList.append(row);
+  });
+}
+
+/* VISUALIZZAZIONE DOCUMENTI RAGGRUPPATI PER CATEGORIA */
+
+function renderDocuments() {
+  documentsList.replaceChildren();
+
+  if (!documentCategories.length && !storedDocuments.length) {
+    documentsList.className = 'empty-state';
+    documentsList.textContent = 'Nessun documento condiviso.';
+    return;
+  }
+
+  documentsList.className = 'document-list';
+
+  function createDocumentRow(item) {
+    const row = document.createElement('article');
+    row.className = 'document-row';
+
+    const info = document.createElement('div');
+    info.className = 'document-info';
+
+    const title = document.createElement('strong');
+    title.textContent = item.title;
+
+    const meta = document.createElement('small');
+    meta.textContent = 'PDF';
+    info.append(title, meta);
+
+    const controls = document.createElement('div');
+    controls.className = 'member-controls';
+
+    const openButton = document.createElement('button');
+    openButton.type = 'button';
+    openButton.className = 'button button-primary';
+    openButton.textContent = 'Apri / Scarica';
+    openButton.addEventListener('click', () => openPrivateDocument(item));
+    controls.append(openButton);
+
+    if (currentRole === 'admin') {
+      const renameButton = document.createElement('button');
+      renameButton.type = 'button';
+      renameButton.className = 'button button-quiet';
+      renameButton.textContent = 'Rinomina';
+      renameButton.addEventListener('click', () => renameDocument(item));
+
+      const replaceButton = document.createElement('button');
+      replaceButton.type = 'button';
+      replaceButton.className = 'button button-quiet';
+      replaceButton.textContent = 'Sostituisci PDF';
+      replaceButton.addEventListener('click', () => replaceDocument(item));
+
+      const deleteButton = document.createElement('button');
+      deleteButton.type = 'button';
+      deleteButton.className = 'button button-quiet';
+      deleteButton.textContent = 'Elimina';
+      deleteButton.addEventListener('click', () => deleteDocument(item));
+
+      controls.append(renameButton, replaceButton, deleteButton);
+    }
+
+    row.append(info, controls);
+    return row;
+  }
+
+  documentCategories.forEach(category => {
+    const categoryDocuments = storedDocuments.filter(
+      item => String(item.category_id) === String(category.id)
+    );
+
+    const section = document.createElement('section');
+    section.className = 'document-category-section';
+
+    const heading = document.createElement('div');
+    heading.className = 'document-category-row';
+
+    const name = document.createElement('strong');
+    name.textContent = category.name;
+
+    const count = document.createElement('small');
+    count.textContent = `${categoryDocuments.length} ${categoryDocuments.length === 1 ? 'documento' : 'documenti'}`;
+    heading.append(name, count);
+    section.append(heading);
+
+    const files = document.createElement('div');
+    files.className = 'document-category-files';
+
+    if (categoryDocuments.length) {
+      categoryDocuments.forEach(item => files.append(createDocumentRow(item)));
+    } else {
+      const empty = document.createElement('p');
+      empty.className = 'muted';
+      empty.textContent = 'Nessun documento in questa categoria.';
+      files.append(empty);
+    }
+
+    section.append(files);
+    documentsList.append(section);
+  });
+
+  const uncategorizedDocuments = storedDocuments.filter(item =>
+    !documentCategories.some(
+      category => String(category.id) === String(item.category_id)
+    )
+  );
+
+  if (uncategorizedDocuments.length) {
+    const section = document.createElement('section');
+    section.className = 'document-category-section';
+
+    const heading = document.createElement('div');
+    heading.className = 'document-category-row';
+
+    const name = document.createElement('strong');
+    name.textContent = 'Senza categoria';
+    heading.append(name);
+    section.append(heading);
+
+    const files = document.createElement('div');
+    files.className = 'document-category-files';
+    uncategorizedDocuments.forEach(item => files.append(createDocumentRow(item)));
+
+    section.append(files);
+    documentsList.append(section);
+  }
+}
+
+async function openPrivateDocument(item) {
+  try {
+    const { data, error } = await supabase.storage
+      .from(documentsBucket)
+      .createSignedUrl(item.storage_path, 60);
+    if (error) throw error;
+    if (!data?.signedUrl) throw new Error('Link temporaneo non disponibile.');
+    window.open(data.signedUrl, '_blank', 'noopener,noreferrer');
+  } catch (error) {
+    console.error(error);
+    setDocumentMessage('Impossibile aprire il PDF. Verifica i permessi di accesso.', true);
+  }
+}
+
+if (documentCategoryForm) {
+  documentCategoryForm.addEventListener('submit', async event => {
+    event.preventDefault();
+    if (currentRole !== 'admin') return;
+    const name = documentCategoryName.value.trim();
+    if (!name) return;
+    const button = documentCategoryForm.querySelector('button[type="submit"]');
+    button.disabled = true;
+    showMessage(documentCategoryMessage, 'Creazione categoria...');
+    try {
+      const { error } = await supabase.from('document_categories').insert({ name });
+      if (error) throw error;
+      documentCategoryForm.reset();
+      showMessage(documentCategoryMessage, 'Categoria creata correttamente.');
+      await loadDocuments();
+    } catch (error) {
+      console.error(error);
+      showMessage(documentCategoryMessage, 'Impossibile creare la categoria. Verifica che il nome non sia già utilizzato.', true);
+    } finally {
+      button.disabled = false;
+    }
+  });
+}
+
+async function renameDocumentCategory(category) {
+  const name = prompt('Nuovo nome della categoria:', category.name);
+  if (name === null || !name.trim()) return;
+  try {
+    const { error } = await supabase.from('document_categories')
+      .update({ name: name.trim() }).eq('id', category.id);
+    if (error) throw error;
+    await loadDocuments();
+  } catch (error) {
+    console.error(error);
+    alert('Non è stato possibile rinominare la categoria.');
+  }
+}
+
+async function deleteDocumentCategory(category) {
+  const count = storedDocuments.filter(item => item.category_id === category.id).length;
+  if (count > 0) {
+    alert('Questa categoria contiene documenti. Sposta o elimina prima i documenti associati.');
+    return;
+  }
+  if (!confirm(`Vuoi eliminare la categoria "${category.name}"?`)) return;
+  try {
+    const { error } = await supabase.from('document_categories')
+      .delete().eq('id', category.id);
+    if (error) throw error;
+    await loadDocuments();
+  } catch (error) {
+    console.error(error);
+    alert('Non è stato possibile eliminare la categoria.');
+  }
+}
+
+if (documentUploadForm) {
+  documentUploadForm.addEventListener('submit', async event => {
+    event.preventDefault();
+    if (currentRole !== 'admin' || !currentUser) return;
+
+    const title = documentUploadTitle.value.trim();
+    const categoryId = Number(documentUploadCategory.value);
+    const file = documentUploadFile.files?.[0];
+    if (!title || !categoryId || !file) return;
+    if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
+      showMessage(documentUploadMessage, 'È consentito caricare soltanto file PDF.', true);
+      return;
+    }
+    if (file.size > 20 * 1024 * 1024) {
+      showMessage(documentUploadMessage, 'Il PDF supera il limite di 20 MB.', true);
+      return;
+    }
+
+    const button = documentUploadForm.querySelector('button[type="submit"]');
+    button.disabled = true;
+    showMessage(documentUploadMessage, 'Caricamento PDF in corso...');
+    const storagePath = `${currentUser.uid}/${crypto.randomUUID()}-${safeFileName(file.name)}`;
+
+    try {
+      const { error: uploadError } = await supabase.storage
+        .from(documentsBucket)
+        .upload(storagePath, file, {
+          contentType: 'application/pdf',
+          cacheControl: '3600',
+          upsert: false
+        });
+      if (uploadError) throw uploadError;
+
+      const { error: insertError } = await supabase.from('documents').insert({
+        category_id: categoryId,
+        title,
+        file_name: file.name,
+        storage_path: storagePath,
+        created_by: currentUser.uid
+      });
+      if (insertError) {
+        await supabase.storage.from(documentsBucket).remove([storagePath]);
+        throw insertError;
+      }
+
+      documentUploadForm.reset();
+      showMessage(documentUploadMessage, 'Documento caricato correttamente.');
+      await loadDocuments();
+    } catch (error) {
+      console.error(error);
+      showMessage(documentUploadMessage, 'Errore durante il caricamento. Verifica le autorizzazioni Supabase.', true);
+    } finally {
+      button.disabled = false;
+    }
+  });
+}
+
+async function renameDocument(item) {
+  const title = prompt('Nuovo titolo del documento:', item.title);
+  if (title === null || !title.trim()) return;
+  try {
+    const { error } = await supabase.from('documents')
+      .update({ title: title.trim() }).eq('id', item.id);
+    if (error) throw error;
+    await loadDocuments();
+  } catch (error) {
+    console.error(error);
+    alert('Non è stato possibile rinominare il documento.');
+  }
+}
+
+function replaceDocument(item) {
+  if (currentRole !== 'admin') return;
+  const picker = document.createElement('input');
+  picker.type = 'file';
+  picker.accept = 'application/pdf,.pdf';
+  picker.addEventListener('change', async () => {
+    const file = picker.files?.[0];
+    if (!file) return;
+    if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
+      alert('È consentito caricare soltanto file PDF.');
+      return;
+    }
+    if (file.size > 20 * 1024 * 1024) {
+      alert('Il PDF supera il limite di 20 MB.');
+      return;
+    }
+
+    const newPath = `${currentUser.uid}/${crypto.randomUUID()}-${safeFileName(file.name)}`;
+    try {
+      const { error: uploadError } = await supabase.storage.from(documentsBucket)
+        .upload(newPath, file, { contentType: 'application/pdf', upsert: false });
+      if (uploadError) throw uploadError;
+
+      const { error: updateError } = await supabase.from('documents').update({
+        file_name: file.name,
+        storage_path: newPath
+      }).eq('id', item.id);
+      if (updateError) {
+        await supabase.storage.from(documentsBucket).remove([newPath]);
+        throw updateError;
+      }
+
+      const { error: removeError } = await supabase.storage.from(documentsBucket)
+        .remove([item.storage_path]);
+      if (removeError) console.error('Il vecchio PDF non è stato rimosso:', removeError);
+      alert('PDF sostituito correttamente.');
+      await loadDocuments();
+    } catch (error) {
+      console.error(error);
+      alert('Non è stato possibile sostituire il PDF.');
+    }
+  });
+  picker.click();
+}
+
+async function deleteDocument(item) {
+  if (!confirm(`Vuoi eliminare definitivamente "${item.title}"?`)) return;
+  try {
+    const { error: removeError } = await supabase.storage.from(documentsBucket)
+      .remove([item.storage_path]);
+    if (removeError) throw removeError;
+
+    const { error: deleteError } = await supabase.from('documents')
+      .delete().eq('id', item.id);
+    if (deleteError) throw deleteError;
+    await loadDocuments();
+  } catch (error) {
+    console.error(error);
+    alert('Non è stato possibile eliminare il documento.');
+  }
 }
 
 /* STATO DELLA CONNESSIONE */
